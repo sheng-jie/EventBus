@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FishingEventData.cs" />
     <Compile Include="FishingMan.cs" />
     <Compile Include="FishingRod.cs" />
     <Compile Include="FishType.cs" />

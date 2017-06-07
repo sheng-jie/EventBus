@@ -22,7 +22,7 @@ namespace EventBus.Demo
                 Console.WriteLine("铃铛：叮叮叮，鱼儿咬钩了");
                 if (FishingEvent != null)
                 {
-                    var eventData = new EventData() { EventSource = type };
+                    var eventData = new FishingEventData() { FishType = type };
                     FishingEvent(eventData);
                 }
             }
