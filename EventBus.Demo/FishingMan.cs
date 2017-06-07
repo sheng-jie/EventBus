@@ -15,9 +15,10 @@ namespace EventBus.Demo
         public string Name { get; set; }
         public int FishCount { get; set; }
 
-        public void Update(FishType type)
+        public void Update(IEventData eventData)
         {
             FishCount++;
+            var type = Enum.Parse(typeof(FishType), eventData.EventSource.ToString());
             Console.WriteLine("{0}：钓到一条[{2}]，已经钓到{1}条鱼了！", Name, FishCount, type);
         }
     }
