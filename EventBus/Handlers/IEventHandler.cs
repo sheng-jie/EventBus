@@ -17,7 +17,7 @@ namespace EventBus.Handlers
     /// 泛型事件处理器接口
     /// </summary>
     /// <typeparam name="TEventData"></typeparam>
-    public interface IEventHandler<TEventData> : IEventHandler where TEventData : IEventData
+    public interface IEventHandler<in TEventData> : IEventHandler where TEventData : IEventData
     {
         /// <summary>
         /// 事件处理器实现该方法来处理事件

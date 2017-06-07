@@ -43,9 +43,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FishingEventData.cs" />
+    <Compile Include="FishingEventHandler.cs" />
     <Compile Include="FishingMan.cs" />
     <Compile Include="FishingRod.cs" />
     <Compile Include="FishType.cs" />
+    <Compile Include="IEventHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

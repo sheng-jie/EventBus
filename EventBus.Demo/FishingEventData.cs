@@ -9,5 +9,6 @@ namespace EventBus.Demo
     public class FishingEventData : EventData
     {
         public FishType FishType { get; set; }
+        public FishingMan FishingMan { get; set; }
     }
 }

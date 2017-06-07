@@ -24,13 +24,16 @@ namespace EventBus.Demo
             //2、声明垂钓者
             var jeff = new FishingMan("圣杰");
 
-            //3、注册观察者
-            fishingRod.FishingEvent += jeff.HandleEvent;
+            //3.分配鱼竿
+            jeff.FishingRod = fishingRod;
 
-            //4、循环钓鱼
+            //4、注册观察者
+            fishingRod.FishingEvent += new FishingEventHandler().HandleEvent;
+
+            //5、循环钓鱼
             while (jeff.FishCount < 5)
             {
-                fishingRod.Fishing();
+                jeff.Fishing();
                 Console.WriteLine("-------------------");
                 //睡眠5s
                 Thread.Sleep(5000);

@@ -7,10 +7,13 @@ namespace EventBus.Demo
     /// </summary>
     public class FishingRod
     {
-        public delegate void FishingHandler(IEventData eventData); //声明委托
+        public delegate void FishingHandler(FishingEventData eventData); //声明委托
         public event FishingHandler FishingEvent; //声明事件
 
-        public void Fishing()
+        /// <summary>
+        /// 下钩
+        /// </summary>
+        public void ThrowHook(FishingMan man)
         {
             Console.WriteLine("开始下钩！");
 
@@ -22,7 +25,7 @@ namespace EventBus.Demo
                 Console.WriteLine("铃铛：叮叮叮，鱼儿咬钩了");
                 if (FishingEvent != null)
                 {
-                    var eventData = new FishingEventData() { FishType = type };
+                    var eventData = new FishingEventData() { FishType = type, FishingMan = man };
                     FishingEvent(eventData);
                 }
             }
