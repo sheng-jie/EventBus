@@ -44,7 +44,7 @@
   <ItemGroup>
     <Compile Include="FishingMan.cs" />
     <Compile Include="FishingRod.cs" />
-    <Compile Include="FishTyp.cs" />
+    <Compile Include="FishType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
