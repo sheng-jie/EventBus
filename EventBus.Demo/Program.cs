@@ -25,7 +25,7 @@ namespace EventBus.Demo
             var jeff = new FishingMan("圣杰");
 
             //3、注册观察者
-            fishingRod.FishingEvent += jeff.Update;
+            fishingRod.FishingEvent += jeff.HandleEvent;
 
             //4、循环钓鱼
             while (jeff.FishCount < 5)
