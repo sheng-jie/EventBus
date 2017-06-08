@@ -499,5 +499,7 @@ public void ThrowHook(FishingMan man)
 -----
 # 参考资料
 [DDD~领域事件与事件总线](http://www.cnblogs.com/lori/p/3476703.html)
+
 [DDD事件总线的实现](http://www.cnblogs.com/dehai/p/4887998.html)
+
 [『观察者模式』来钓鱼](http://www.jianshu.com/p/45675c73296d)
