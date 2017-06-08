@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EventBus.Handlers;
+using System;
 using System.Reflection;
 
 namespace EventBus.Demo
@@ -17,11 +18,19 @@ namespace EventBus.Demo
 
             foreach (var type in assembly.GetTypes())
             {
-                Type eventHandlerType = type.GetInterface("IEventHandler`1");//获取实现了IEventHandler的类型
-                if (eventHandlerType != null) //若是事件处理者
+                if (typeof(IEventHandler).IsAssignableFrom(type))//判断当前类型是否实现了IEventHandler接口
                 {
-                    Type eventType = eventHandlerType.GetGenericArguments()[0]; // 获取IEventHandler的参数类型
-                    //未完待续
+                    Type handlerInterface = type.GetInterface("IEventHandler`1");//获取该类实现的泛型接口
+                    Type eventDataType = handlerInterface.GetGenericArguments()[0]; // 获取泛型接口指定的参数类型
+
+                    //如果参数类型是FishingEventData，则说明事件源匹配
+                    if (eventDataType.Equals(typeof(FishingEventData)))
+                    {
+                        //创建实例
+                        var handler = Activator.CreateInstance(type) as IEventHandler<FishingEventData>;
+                        //注册事件
+                        FishingEvent += handler.HandleEvent;
+                    }
                 }
             }
         }

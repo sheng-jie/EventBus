@@ -27,8 +27,8 @@ namespace EventBus.Demo
             //3.分配鱼竿
             jeff.FishingRod = fishingRod;
 
-            //4、注册观察者
-            fishingRod.FishingEvent += new FishingEventHandler().HandleEvent;
+            ////4、注册观察者
+            //fishingRod.FishingEvent += new FishingEventHandler().HandleEvent;
 
             //5、循环钓鱼
             while (jeff.FishCount < 5)

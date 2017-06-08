@@ -6,7 +6,7 @@ namespace EventBus.Demo
     /// <summary>
     ///     垂钓者（观察者）
     /// </summary>
-    public class FishingMan : IEventHandler<IEventData>
+    public class FishingMan
     {
         public FishingMan(string name)
         {
@@ -24,15 +24,6 @@ namespace EventBus.Demo
         public void Fishing()
         {
             this.FishingRod.ThrowHook(this);
-        }
-        public void HandleEvent(IEventData eventData)
-        {
-            if (eventData is FishingEventData)
-            {
-                var fishingEventData = eventData as FishingEventData;
-                FishCount++;
-                Console.WriteLine("{0}：钓到一条[{2}]，已经钓到{1}条鱼了！", Name, FishCount, fishingEventData.FishType);
-            }
         }
     }
 }
