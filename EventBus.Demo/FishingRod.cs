@@ -24,12 +24,12 @@ namespace EventBus.Demo
                     Type eventDataType = handlerInterface.GetGenericArguments()[0]; // 获取泛型接口指定的参数类型
 
                     //如果参数类型是FishingEventData，则说明事件源匹配
-                    if (eventDataType.Equals(typeof(FishingEventData)))
+                    if (eventDataType == typeof(FishingEventData))
                     {
                         //创建实例
                         var handler = Activator.CreateInstance(type) as IEventHandler<FishingEventData>;
                         //注册事件
-                        FishingEvent += handler.HandleEvent;
+                        if (handler != null) FishingEvent += handler.HandleEvent;
                     }
                 }
             }
@@ -51,7 +51,9 @@ namespace EventBus.Demo
                 if (FishingEvent != null)
                 {
                     var eventData = new FishingEventData() { FishType = type, FishingMan = man };
-                    FishingEvent(eventData);
+                    //FishingEvent(eventData);//不再需要通过事件委托触发
+                    EventBus.Default.Trigger(eventData);
+                    EventBus.Default.Trigger<FishingEventData>(eventData);//直接通过事件总线触发即可
                 }
             }
         }
