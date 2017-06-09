@@ -49,7 +49,7 @@ void btnRegister_Click(object sender, EventArgs e)
 
 ![图2：发布订阅模式流程](http://upload-images.jianshu.io/upload_images/2799767-8a17f6e834278167.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-#3 实现发布订阅模式
+# 3. 实现发布订阅模式
 相信通过上面的解释，对事件和发布订阅模式有了一个大概的印象。都说理论要与实践相结合，所以我们还是动动手指敲敲代码比较好。
 我将以[『观察者模式』来钓鱼](http://www.jianshu.com/p/45675c73296d)这个例子为基础，通过重构的方式来完善一个更加通用的发布订阅模式。
 先上代码：
