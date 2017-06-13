@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="EventBus.cs" />
     <Compile Include="EventData.cs" />
+    <Compile Include="Handlers\ActionEventHandler.cs" />
     <Compile Include="Handlers\IEventHandler.cs" />
     <Compile Include="IEventBus.cs" />
     <Compile Include="IEventData.cs" />
