@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace EventBus.Demo
     {
         static void Main(string[] args)
         {
+            //注册当前程序集中实现的所有IEventHandler<T>
+            EventBus.Default.RegisterAllEventHandlerFromAssembly(Assembly.GetExecutingAssembly());
             Test();
         }
 

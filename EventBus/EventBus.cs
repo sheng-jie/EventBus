@@ -3,6 +3,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using Castle.MicroKernel.Registration;
+using Castle.Windsor;
 
 namespace EventBus
 {
@@ -11,11 +13,8 @@ namespace EventBus
     /// </summary>
     public class EventBus : IEventBus
     {
-        private static EventBus _eventBus = null;
-        public static EventBus Default
-        {
-            get { return _eventBus ?? (_eventBus = new EventBus()); }
-        }
+        public IWindsorContainer IocContainer { get; private set; }
+        public static EventBus Default { get; private set; }
 
         /// <summary>
         /// 定义线程安全集合
@@ -24,8 +23,15 @@ namespace EventBus
 
         public EventBus()
         {
+            IocContainer = new WindsorContainer();
             _eventAndHandlerMapping = new ConcurrentDictionary<Type, List<IEventHandler>>();
-            MapEventToHandler();
+            //MapEventToHandler();
+        }
+
+        static EventBus()
+        {
+            Default = new EventBus();
+
         }
 
         /// <summary>
@@ -33,34 +39,35 @@ namespace EventBus
         /// </summary>
         private void MapEventToHandler()
         {
-            Assembly assembly = Assembly.GetEntryAssembly();
-            if (assembly == null)
-            {
-                return;
-            }
-            foreach (var type in assembly.GetTypes())
-            {
-                if (typeof(IEventHandler).IsAssignableFrom(type))//判断当前类型是否实现了IEventHandler接口
-                {
-                    Type handlerInterface = type.GetInterface("IEventHandler`1");//获取该类实现的泛型接口
-                    if (handlerInterface != null)
-                    {
-                        Type eventDataType = handlerInterface.GetGenericArguments()[0]; // 获取泛型接口指定的参数类型
+            //EventBusBootstrapper.Startup();
+            //Assembly assembly = Assembly.GetEntryAssembly();
+            //if (assembly == null)
+            //{
+            //    return;
+            //}
+            //foreach (var type in assembly.GetTypes())
+            //{
+            //    if (typeof(IEventHandler).IsAssignableFrom(type))//判断当前类型是否实现了IEventHandler接口
+            //    {
+            //        Type handlerInterface = type.GetInterface("IEventHandler`1");//获取该类实现的泛型接口
+            //        if (handlerInterface != null)
+            //        {
+            //            Type eventDataType = handlerInterface.GetGenericArguments()[0]; // 获取泛型接口指定的参数类型
 
-                        if (_eventAndHandlerMapping.ContainsKey(eventDataType))
-                        {
-                            List<IEventHandler> handlerTypes = _eventAndHandlerMapping[eventDataType];
-                            handlerTypes.Add(Activator.CreateInstance(type) as IEventHandler);
-                            _eventAndHandlerMapping[eventDataType] = handlerTypes;
-                        }
-                        else
-                        {
-                            var handlerTypes = new List<IEventHandler> { Activator.CreateInstance(type) as IEventHandler };
-                            _eventAndHandlerMapping[eventDataType] = handlerTypes;
-                        }
-                    }
-                }
-            }
+            //            if (_eventAndHandlerMapping.ContainsKey(eventDataType))
+            //            {
+            //                List<IEventHandler> handlerTypes = _eventAndHandlerMapping[eventDataType];
+            //                handlerTypes.Add(Activator.CreateInstance(type) as IEventHandler);
+            //                _eventAndHandlerMapping[eventDataType] = handlerTypes;
+            //            }
+            //            else
+            //            {
+            //                var handlerTypes = new List<IEventHandler> { Activator.CreateInstance(type) as IEventHandler };
+            //                _eventAndHandlerMapping[eventDataType] = handlerTypes;
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         /// <summary>
@@ -70,19 +77,7 @@ namespace EventBus
         /// <param name="eventHandler"></param>
         public void Register<TEventData>(IEventHandler eventHandler)
         {
-            if (_eventAndHandlerMapping.Keys.Contains(typeof(TEventData)))
-            {
-                List<IEventHandler> handlerTypes = _eventAndHandlerMapping[typeof(TEventData)];
-                if (!handlerTypes.Contains(eventHandler))
-                {
-                    handlerTypes.Add(eventHandler);
-                    _eventAndHandlerMapping[typeof(TEventData)] = handlerTypes;
-                }
-            }
-            else
-            {
-                _eventAndHandlerMapping.GetOrAdd(typeof(TEventData), (type) => new List<IEventHandler>()).Add(eventHandler);
-            }
+            Register(typeof(TEventData), eventHandler);
         }
 
 
@@ -90,6 +85,61 @@ namespace EventBus
         {
             var actionHandler = new ActionEventHandler<TEventData>(action);
             Register<TEventData>(actionHandler);
+        }
+
+        public void Register(Type eventType, IEventHandler eventHandler)
+        {
+            if (_eventAndHandlerMapping.Keys.Contains(eventType))
+            {
+                List<IEventHandler> handlerTypes = _eventAndHandlerMapping[eventType];
+                if (!handlerTypes.Contains(eventHandler))
+                {
+                    handlerTypes.Add(eventHandler);
+                    _eventAndHandlerMapping[eventType] = handlerTypes;
+                }
+            }
+            else
+            {
+                _eventAndHandlerMapping.GetOrAdd(eventType, (type) => new List<IEventHandler>()).Add(eventHandler);
+            }
+        }
+
+        /// <summary>
+        /// 提供入口支持注册其它程序集中实现的IEventHandler
+        /// </summary>
+        /// <param name="assembly"></param>
+        public void RegisterAllEventHandlerFromAssembly(Assembly assembly)
+        {
+            IocContainer.Register(Classes.FromAssembly(assembly)
+                .BasedOn(typeof(IEventHandler<>))
+                .WithService.AllInterfaces()
+                .LifestyleSingleton());
+
+            var handlers = IocContainer.Kernel.GetHandlers(typeof(IEventHandler));
+            foreach (var handler in handlers)
+            {
+                if (!typeof(IEventHandler).IsAssignableFrom(handler.ComponentModel.Implementation))
+                {
+                    return;
+                }
+
+                var interfaces = handler.ComponentModel.Implementation.GetInterfaces();
+                foreach (var @interface in interfaces)
+                {
+                    if (!typeof(IEventHandler).IsAssignableFrom(@interface))
+                    {
+                        continue;
+                    }
+
+                    var genericArgs = @interface.GetGenericArguments();
+                    if (genericArgs.Length == 1)
+                    {
+                        var handlerType = typeof(IEventHandler<>).MakeGenericType(genericArgs[0]);
+                        var eventHandler = IocContainer.Resolve(handlerType) as IEventHandler;
+                        Register(genericArgs[0], eventHandler);
+                    }
+                }
+            }
         }
 
         /// <summary>

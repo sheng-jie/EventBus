@@ -12,6 +12,8 @@ namespace EventBus
 
         void Register<TEventData>(Action<TEventData> action) where TEventData : IEventData;
 
+        void Register(Type eventType, IEventHandler handler);
+
         void UnRegister<TEventData>(Type eventHandler);
 
         void Trigger<TEventData>(TEventData eventData) where TEventData : IEventData;
