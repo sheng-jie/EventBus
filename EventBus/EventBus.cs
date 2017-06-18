@@ -25,49 +25,12 @@ namespace EventBus
         {
             IocContainer = new WindsorContainer();
             _eventAndHandlerMapping = new ConcurrentDictionary<Type, List<Type>>();
-            //MapEventToHandler();
         }
 
         static EventBus()
         {
             Default = new EventBus();
 
-        }
-
-        /// <summary>
-        ///通过反射，将事件源与事件处理绑定
-        /// </summary>
-        private void MapEventToHandler()
-        {
-            //EventBusBootstrapper.Startup();
-            //Assembly assembly = Assembly.GetEntryAssembly();
-            //if (assembly == null)
-            //{
-            //    return;
-            //}
-            //foreach (var type in assembly.GetTypes())
-            //{
-            //    if (typeof(IEventHandler).IsAssignableFrom(type))//判断当前类型是否实现了IEventHandler接口
-            //    {
-            //        Type handlerInterface = type.GetInterface("IEventHandler`1");//获取该类实现的泛型接口
-            //        if (handlerInterface != null)
-            //        {
-            //            Type eventDataType = handlerInterface.GetGenericArguments()[0]; // 获取泛型接口指定的参数类型
-
-            //            if (_eventAndHandlerMapping.ContainsKey(eventDataType))
-            //            {
-            //                List<IEventHandler> handlerTypes = _eventAndHandlerMapping[eventDataType];
-            //                handlerTypes.Add(Activator.CreateInstance(type) as IEventHandler);
-            //                _eventAndHandlerMapping[eventDataType] = handlerTypes;
-            //            }
-            //            else
-            //            {
-            //                var handlerTypes = new List<IEventHandler> { Activator.CreateInstance(type) as IEventHandler };
-            //                _eventAndHandlerMapping[eventDataType] = handlerTypes;
-            //            }
-            //        }
-            //    }
-            //}
         }
 
         /// <summary>
@@ -146,13 +109,13 @@ namespace EventBus
         /// 手动解除事件源与事件处理的绑定
         /// </summary>
         /// <typeparam name="TEventData"></typeparam>
-        /// <param name="eventHandler"></param>
-        public void UnRegister<TEventData>(Type eventHandler)
+        /// <param name="handlerType"></param>
+        public void UnRegister<TEventData>(Type handlerType)
         {
             List<Type> handlerTypes = _eventAndHandlerMapping[typeof(TEventData)];
 
             _eventAndHandlerMapping.GetOrAdd(typeof(TEventData), (type) => new List<Type>())
-                .RemoveAll(t => t == eventHandler);
+                .RemoveAll(t => t == handlerType);
         }
 
         /// <summary>
@@ -168,12 +131,6 @@ namespace EventBus
             {
                 foreach (var handler in handlers)
                 {
-                    //if (handler == typeof(ActionEventHandler<TEventData>))
-                    //{
-                    //    var actionEventHandler = Activator.CreateInstance<ActionEventHandler<TEventData>>();
-                    //    actionEventHandler.Action(eventData);
-                    //}
-                    //var handlerType = typeof(IEventHandler<>).MakeGenericType(typeof(TEventData));
                     var handlerType = handler.GetInterface("IEventHandler`1");
                     var eventHandler = IocContainer.Resolve(handlerType) as IEventHandler<TEventData>;
                     eventHandler?.HandleEvent(eventData);

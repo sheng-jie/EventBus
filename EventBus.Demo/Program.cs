@@ -39,7 +39,7 @@ namespace EventBus.Demo
                 jeff.Fishing();
                 Console.WriteLine("-------------------");
                 //睡眠5s
-                //Thread.Sleep(5000);
+                Thread.Sleep(5000);
             }
         }
     }
