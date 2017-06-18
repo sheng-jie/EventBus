@@ -2,6 +2,7 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using EventBus.Handlers;
 
 namespace EventBus.Test
 {
@@ -17,25 +18,20 @@ namespace EventBus.Test
         }
 
         [Fact]
-        public void Should_Throw_Exception_Without_Registered()
+        public void Should_Auto_Call_Without_Registered()
         {
-            Assert.Throws<KeyNotFoundException>(() => TestEventBus.Trigger<TestEventData>(new TestEventData(1)));
+            TestEventBus.Trigger<TestEventData>(new TestEventData(1));
+            TestEventHandler.TestValue.ShouldBe(1);
         }
 
         [Fact]
-        public void Should_Not_Trigger_On_UnRegistered()
+        public void Should_Not_Trigger_After_UnRegistered()
         {
-            var eventHandler = new TestEventHandler();
-            TestEventBus.Register<TestEventData>(new TestEventHandler());
-
-            TestEventBus.Trigger<TestEventData>(new TestEventData(1));
-            TestEventHandler.TestValue.ShouldBe(1);
-
-            TestEventBus.UnRegister<TestEventData>(eventHandler.GetType());
+            TestEventBus.UnRegister<TestEventData>(typeof(TestEventHandler));
 
             TestEventBus.Trigger<TestEventData>(new TestEventData(2));
 
-            TestEventHandler.TestValue.ShouldBe(1);
+            TestEventHandler.TestValue.ShouldBe(0);
 
         }
 
