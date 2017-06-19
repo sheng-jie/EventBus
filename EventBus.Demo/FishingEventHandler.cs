@@ -21,4 +21,14 @@ namespace EventBus.Demo
 
         }
     }
+
+    public class FishingEventHandler2 : IEventHandler<FishingEventData>
+    {
+        public void HandleEvent(FishingEventData eventData)
+        {
+
+            Console.WriteLine("哈哈哈哈哈！");
+
+        }
+    }
 }

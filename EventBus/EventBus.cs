@@ -54,6 +54,14 @@ namespace EventBus
 
         public void Register(Type eventType, Type handlerType)
         {
+            //注册IEventHandler<T>到IOC容器
+            var handlerInterface = handlerType.GetInterface("IEventHandler`1");
+            if (!IocContainer.Kernel.HasComponent(handlerInterface))
+            {
+                IocContainer.Register(Component.For(handlerInterface, handlerType));
+            }
+
+            //注册到事件总线
             if (_eventAndHandlerMapping.Keys.Contains(eventType))
             {
                 List<Type> handlerTypes = _eventAndHandlerMapping[eventType];
@@ -65,6 +73,7 @@ namespace EventBus
             }
             else
             {
+
                 _eventAndHandlerMapping.GetOrAdd(eventType, (type) => new List<Type>()).Add(handlerType);
             }
         }
@@ -75,19 +84,17 @@ namespace EventBus
         /// <param name="assembly"></param>
         public void RegisterAllEventHandlerFromAssembly(Assembly assembly)
         {
+            //1.将IEventHandler注册到Ioc容器
             IocContainer.Register(Classes.FromAssembly(assembly)
                 .BasedOn(typeof(IEventHandler<>))
                 .WithService.AllInterfaces()
                 .LifestyleSingleton());
 
+            //2.从IOC容器中获取注册的所有IEventHandler
             var handlers = IocContainer.Kernel.GetHandlers(typeof(IEventHandler));
             foreach (var handler in handlers)
             {
-                if (!typeof(IEventHandler).IsAssignableFrom(handler.ComponentModel.Implementation))
-                {
-                    return;
-                }
-
+                //循环遍历所有的IEventHandler<T>
                 var interfaces = handler.ComponentModel.Implementation.GetInterfaces();
                 foreach (var @interface in interfaces)
                 {
@@ -96,9 +103,11 @@ namespace EventBus
                         continue;
                     }
 
+                    //获取泛型参数类型
                     var genericArgs = @interface.GetGenericArguments();
                     if (genericArgs.Length == 1)
                     {
+                        //注册到事件源与事件处理的映射字典中
                         Register(genericArgs[0], handler.ComponentModel.Implementation);
                     }
                 }
@@ -112,8 +121,6 @@ namespace EventBus
         /// <param name="handlerType"></param>
         public void UnRegister<TEventData>(Type handlerType)
         {
-            List<Type> handlerTypes = _eventAndHandlerMapping[typeof(TEventData)];
-
             _eventAndHandlerMapping.GetOrAdd(typeof(TEventData), (type) => new List<Type>())
                 .RemoveAll(t => t == handlerType);
         }
