@@ -9,6 +9,7 @@ namespace EventBus.Demo
     /// </summary>
     public class FishingRod
     {
+        #region 委托实现方式，仅供参考
         public delegate void FishingHandler(FishingEventData eventData); //声明委托
         public event FishingHandler FishingEvent; //声明事件
 
@@ -34,6 +35,7 @@ namespace EventBus.Demo
                 }
             }
         }
+        #endregion 委托实现方式，仅供参考
 
         /// <summary>
         /// 下钩
