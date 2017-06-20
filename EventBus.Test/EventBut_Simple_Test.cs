@@ -108,7 +108,8 @@ namespace EventBus.Test
             TestEventBus.Register<TestEventData>(
                 actionEventData => { count++; }
             );
-            await TestEventBus.TriggerAsycn<TestEventData>(typeof(TestEventHandler), new TestEventData(999));
+            await TestEventBus.TriggerAsycn<TestEventData>
+                (typeof(TestEventHandler), new TestEventData(999));
 
             TestEventHandler.TestValue.ShouldBe(999);
             count.ShouldBe(0);

@@ -188,7 +188,8 @@ namespace EventBus
         /// <param name="eventHandlerType"></param>
         /// <param name="eventData"></param>
 
-        public void Trigger<TEventData>(Type eventHandlerType, TEventData eventData) where TEventData : IEventData
+        public void Trigger<TEventData>(Type eventHandlerType, TEventData eventData) 
+            where TEventData : IEventData
         {
             //获取类型实现的泛型接口
             var handlerInterface = eventHandlerType.GetInterface("IEventHandler`1");
@@ -223,7 +224,8 @@ namespace EventBus
         /// <param name="eventHandlerType"></param>
         /// <param name="eventData"></param>
         /// <returns></returns>
-        public Task TriggerAsycn<TEventData>(Type eventHandlerType, TEventData eventData) where TEventData : IEventData
+        public Task TriggerAsycn<TEventData>(Type eventHandlerType, TEventData eventData) 
+            where TEventData : IEventData
         {
             return Task.Run(() => Trigger(eventHandlerType, eventData));
         }
