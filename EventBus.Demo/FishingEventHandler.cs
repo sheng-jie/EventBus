@@ -22,13 +22,15 @@ namespace EventBus.Demo
         }
     }
 
+    /// <summary>
+    /// 钓鱼事件处理，钓到鱼后大笑一声
+    /// </summary>
+
     public class FishingEventHandler2 : IEventHandler<FishingEventData>
     {
         public void HandleEvent(FishingEventData eventData)
         {
-
             Console.WriteLine("哈哈哈哈哈！");
-
         }
     }
 }

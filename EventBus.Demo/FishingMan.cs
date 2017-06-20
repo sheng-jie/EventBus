@@ -19,7 +19,7 @@ namespace EventBus.Demo
         /// <summary>
         /// 垂钓者自然要有鱼竿啊
         /// </summary>
-        public FishingRod FishingRod { get; set; }
+        public IFishingRod FishingRod { get; set; }
 
         public void Fishing()
         {

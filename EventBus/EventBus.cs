@@ -87,11 +87,10 @@ namespace EventBus
             //1.将IEventHandler注册到Ioc容器
             IocContainer.Register(Classes.FromAssembly(assembly)
                 .BasedOn(typeof(IEventHandler<>))
-                .WithService.AllInterfaces()
-                .LifestyleSingleton());
+                .WithService.Base());
 
             //2.从IOC容器中获取注册的所有IEventHandler
-            var handlers = IocContainer.Kernel.GetHandlers(typeof(IEventHandler));
+            var handlers = IocContainer.Kernel.GetAssignableHandlers(typeof(IEventHandler));
             foreach (var handler in handlers)
             {
                 //循环遍历所有的IEventHandler<T>
@@ -132,15 +131,26 @@ namespace EventBus
         /// <param name="eventData"></param>
         public void Trigger<TEventData>(TEventData eventData) where TEventData : IEventData
         {
-            List<Type> handlers = _eventAndHandlerMapping[typeof(TEventData)];
+            //获取所有映射的EventHandler
+            List<Type> handlerTypes = _eventAndHandlerMapping[typeof(TEventData)];
 
-            if (handlers != null && handlers.Count > 0)
+            if (handlerTypes != null && handlerTypes.Count > 0)
             {
-                foreach (var handler in handlers)
+                foreach (var handlerType in handlerTypes)
                 {
-                    var handlerType = handler.GetInterface("IEventHandler`1");
-                    var eventHandler = IocContainer.Resolve(handlerType) as IEventHandler<TEventData>;
-                    eventHandler?.HandleEvent(eventData);
+                    //从Ioc容器中获取所有的实例
+                    var handlerInterface = handlerType.GetInterface("IEventHandler`1");
+                    var eventHandlers = IocContainer.ResolveAll(handlerInterface);
+
+                    //循环遍历，仅当解析的实例类型与映射字典中事件处理类型一致时，才触发事件
+                    foreach (var eventHandler in eventHandlers)
+                    {
+                        if (eventHandler.GetType() == handlerType)
+                        {
+                            var handler = eventHandler as IEventHandler<TEventData>;
+                            handler.HandleEvent(eventData);
+                        }
+                    }
                 }
             }
         }

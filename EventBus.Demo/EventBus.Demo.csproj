@@ -46,7 +46,9 @@
     <Compile Include="FishingEventHandler.cs" />
     <Compile Include="FishingMan.cs" />
     <Compile Include="FishingRod.cs" />
+    <Compile Include="FishingRodWithDelegate.cs" />
     <Compile Include="FishType.cs" />
+    <Compile Include="IFishingRod.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
