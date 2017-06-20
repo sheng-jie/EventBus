@@ -55,13 +55,7 @@ namespace EventBus.Demo
                 var eventData = new FishingEventData() { FishType = type, FishingMan = man };
                 //FishingEvent(eventData);//不再需要通过事件委托触发
                 EventBus.Default.Trigger<FishingEventData>(eventData);//直接通过事件总线触发即可
-
-                //EventBus.Default.Register<EventData>(
-                //    actionEventData => { Console.WriteLine(actionEventData.GetType()); }
-                //    );
-
-                //EventBus.Default.Trigger(new EventData());
-                //}
+                
             }
         }
     }
