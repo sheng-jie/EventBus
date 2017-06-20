@@ -9,31 +9,33 @@ namespace EventBus.Demo
     /// </summary>
     public class FishingRod
     {
-        //public delegate void FishingHandler(FishingEventData eventData); //声明委托
-        //public event FishingHandler FishingEvent; //声明事件
+        #region 委托实现方式，仅供参考
+        public delegate void FishingHandler(FishingEventData eventData); //声明委托
+        public event FishingHandler FishingEvent; //声明事件
 
         public FishingRod()
         {
-            //Assembly assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = Assembly.GetExecutingAssembly();
 
-            //foreach (var type in assembly.GetTypes())
-            //{
-            //    if (typeof(IEventHandler).IsAssignableFrom(type))//判断当前类型是否实现了IEventHandler接口
-            //    {
-            //        Type handlerInterface = type.GetInterface("IEventHandler`1");//获取该类实现的泛型接口
-            //        Type eventDataType = handlerInterface.GetGenericArguments()[0]; // 获取泛型接口指定的参数类型
+            foreach (var type in assembly.GetTypes())
+            {
+                if (typeof(IEventHandler).IsAssignableFrom(type))//判断当前类型是否实现了IEventHandler接口
+                {
+                    Type handlerInterface = type.GetInterface("IEventHandler`1");//获取该类实现的泛型接口
+                    Type eventDataType = handlerInterface.GetGenericArguments()[0]; // 获取泛型接口指定的参数类型
 
-            //        //如果参数类型是FishingEventData，则说明事件源匹配
-            //        if (eventDataType == typeof(FishingEventData))
-            //        {
-            //            //创建实例
-            //            var handler = Activator.CreateInstance(type) as IEventHandler<FishingEventData>;
-            //            //注册事件
-            //            if (handler != null) FishingEvent += handler.HandleEvent;
-            //        }
-            //    }
-            //}
+                    //如果参数类型是FishingEventData，则说明事件源匹配
+                    if (eventDataType == typeof(FishingEventData))
+                    {
+                        //创建实例
+                        var handler = Activator.CreateInstance(type) as IEventHandler<FishingEventData>;
+                        //注册事件
+                        if (handler != null) FishingEvent += handler.HandleEvent;
+                    }
+                }
+            }
         }
+        #endregion 委托实现方式，仅供参考
 
         /// <summary>
         /// 下钩
