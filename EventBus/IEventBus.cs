@@ -20,6 +20,11 @@ namespace EventBus
         void UnRegister<TEventData>(Type handlerType);
 
         void Trigger<TEventData>(TEventData eventData) where TEventData : IEventData;
+        void Trigger<TEventData>(Type eventHandlerType, TEventData eventData) where TEventData : IEventData;
+
+        Task TriggerAsync<TEventData>(TEventData eventData) where TEventData : IEventData;
+
+        Task TriggerAsycn<TEventData>(Type eventHandlerType, TEventData eventData) where TEventData : IEventData;
 
     }
 }

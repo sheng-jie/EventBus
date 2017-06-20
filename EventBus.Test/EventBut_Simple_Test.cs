@@ -2,6 +2,7 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using EventBus.Handlers;
 
 namespace EventBus.Test
@@ -74,5 +75,45 @@ namespace EventBus.Test
             TestEventHandler.TestValue.ShouldBe(999);
             count.ShouldBe(1);
         }
+
+
+        [Fact]
+        public async Task Should_Call_Handler_Async()
+        {
+            await TestEventBus.TriggerAsync(new TestEventData(123));
+            TestEventHandler.TestValue.ShouldBe(123);
+        }
+
+        [Fact]
+        public void Should_Call_Specified_Handler()
+        {
+            TestEventBus.Register<TestEventData>(new TestEventHandler());
+            var count = 0;
+            TestEventBus.Register<TestEventData>(
+                actionEventData => { count++; }
+            );
+
+            TestEventBus.Trigger<TestEventData>(typeof(TestEventHandler), new TestEventData(999));
+
+            TestEventHandler.TestValue.ShouldBe(999);
+            count.ShouldBe(0);
+        }
+
+        [Fact]
+        public async void Should_Call_Specified_Handler_Async()
+        {
+            TestEventBus.Register<TestEventData>(new TestEventHandler());
+
+            var count = 0;
+            TestEventBus.Register<TestEventData>(
+                actionEventData => { count++; }
+            );
+            await TestEventBus.TriggerAsycn<TestEventData>(typeof(TestEventHandler), new TestEventData(999));
+
+            TestEventHandler.TestValue.ShouldBe(999);
+            count.ShouldBe(0);
+        }
+
+
     }
 }
