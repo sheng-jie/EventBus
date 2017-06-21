@@ -18,6 +18,11 @@ namespace EventBus
         public static EventBus Default { get; private set; }
 
         /// <summary>
+        /// 定义锁对象
+        /// </summary>
+        private static object lockObj= new object();
+
+        /// <summary>
         /// 定义线程安全集合
         /// </summary>
         private readonly ConcurrentDictionary<Type, List<Type>> _eventAndHandlerMapping;
@@ -81,20 +86,22 @@ namespace EventBus
             }
 
             //注册到事件总线
-            if (_eventAndHandlerMapping.Keys.Contains(eventType))
+            lock (lockObj)
             {
-                List<Type> handlerTypes = _eventAndHandlerMapping[eventType];
-                if (!handlerTypes.Contains(handlerType))
-                {
-                    handlerTypes.Add(handlerType);
-                    _eventAndHandlerMapping[eventType] = handlerTypes;
-                }
+                GetOrCreateHandlers(eventType).Add(handlerType);
             }
-            else
-            {
+        }
 
-                _eventAndHandlerMapping.GetOrAdd(eventType, (type) => new List<Type>()).Add(handlerType);
-            }
+        /// <summary>
+        /// 获取事件总线映射字典中指定事件源的事件列表
+        /// 若有，返回列表
+        /// 若无，构造空列表返回
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <returns></returns>
+        private List<Type> GetOrCreateHandlers(Type eventType)
+        {
+            return _eventAndHandlerMapping.GetOrAdd(eventType, (type) => new List<Type>());
         }
 
         /// <summary>
@@ -141,25 +148,39 @@ namespace EventBus
         /// </summary>
         /// <typeparam name="TEventData"></typeparam>
         /// <param name="handlerType"></param>
-        public void UnRegister<TEventData>(Type handlerType)
+        public void UnRegister<TEventData>(Type handlerType) where TEventData : IEventData
         {
-            _eventAndHandlerMapping.GetOrAdd(typeof(TEventData), (type) => new List<Type>())
-                .RemoveAll(t => t == handlerType);
+            lock (lockObj)
+            {
+                GetOrCreateHandlers(typeof(TEventData)).RemoveAll(t => t == handlerType);
+            }
+        }
+
+        /// <summary>
+        /// 卸载指定事件源上绑定的所有事件
+        /// </summary>
+        /// <typeparam name="TEventData"></typeparam>
+        public void UnRegisterAll<TEventData>() where TEventData : IEventData
+        {
+            lock (lockObj)
+            {
+                GetOrCreateHandlers(typeof(TEventData)).Clear();
+            }
         }
 
         #endregion
 
-        #region Trigger
+            #region Trigger
 
-        /// <summary>
-        /// 根据事件源触发绑定的事件处理
-        /// </summary>
-        /// <typeparam name="TEventData"></typeparam>
-        /// <param name="eventData"></param>
+            /// <summary>
+            /// 根据事件源触发绑定的事件处理
+            /// </summary>
+            /// <typeparam name="TEventData"></typeparam>
+            /// <param name="eventData"></param>
         public void Trigger<TEventData>(TEventData eventData) where TEventData : IEventData
         {
             //获取所有映射的EventHandler
-            List<Type> handlerTypes = _eventAndHandlerMapping[typeof(TEventData)];
+            List<Type> handlerTypes = GetOrCreateHandlers(typeof(TEventData));
 
             if (handlerTypes != null && handlerTypes.Count > 0)
             {

@@ -44,6 +44,23 @@ namespace EventBus.Test
 
         }
 
+        [Fact]
+        public void Should_Not_Trigger_After_UnRegisterAll()
+        {
+            TestEventHandler.TestValue = 0;
+            var count = 0;
+            TestEventBus.Register<TestEventData>(
+                actionEventData => { count++; }
+            );
+
+            TestEventBus.UnRegisterAll<TestEventData>();
+
+            TestEventBus.Trigger<TestEventData>(new TestEventData(1));
+
+            TestEventHandler.TestValue.ShouldBe(0);
+
+        }
+
         /// <summary>
         /// 注册的Action可以触发成功
         /// </summary>
@@ -87,6 +104,7 @@ namespace EventBus.Test
         [Fact]
         public void Should_Call_Specified_Handler()
         {
+            TestEventHandler.TestValue = 0;
             TestEventBus.Register<TestEventData>(new TestEventHandler());
             var count = 0;
             TestEventBus.Register<TestEventData>(
@@ -102,6 +120,7 @@ namespace EventBus.Test
         [Fact]
         public async void Should_Call_Specified_Handler_Async()
         {
+            TestEventHandler.TestValue = 0;
             TestEventBus.Register<TestEventData>(new TestEventHandler());
 
             var count = 0;

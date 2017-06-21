@@ -17,7 +17,9 @@ namespace EventBus
 
         void RegisterAllEventHandlerFromAssembly(Assembly assembly);
 
-        void UnRegister<TEventData>(Type handlerType);
+        void UnRegister<TEventData>(Type handlerType) where TEventData : IEventData;
+
+        void UnRegisterAll<TEventData>() where TEventData : IEventData;
 
         void Trigger<TEventData>(TEventData eventData) where TEventData : IEventData;
         void Trigger<TEventData>(Type eventHandlerType, TEventData eventData) where TEventData : IEventData;
