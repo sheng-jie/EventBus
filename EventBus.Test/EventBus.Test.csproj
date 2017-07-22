@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventBusTestBase.cs" />
+    <Compile Include="InMemory_EventStore_Test.cs" />
     <Compile Include="TestEventData.cs" />
     <Compile Include="TestEventHandler.cs" />
     <Compile Include="EventBut_Simple_Test.cs" />
