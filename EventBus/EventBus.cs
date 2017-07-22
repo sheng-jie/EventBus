@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Castle.MicroKernel.Registration;
 using Castle.Windsor;
+using EventBus.EventStore;
 
 namespace EventBus
 {
@@ -14,29 +16,19 @@ namespace EventBus
     /// </summary>
     public class EventBus : IEventBus
     {
+        private readonly IEventStore _eventStore;
         public IWindsorContainer IocContainer { get; private set; }
         public static EventBus Default { get; private set; }
 
-        /// <summary>
-        /// 定义锁对象
-        /// </summary>
-        private static object lockObj= new object();
-
-        /// <summary>
-        /// 定义线程安全集合
-        /// </summary>
-        private readonly ConcurrentDictionary<Type, List<Type>> _eventAndHandlerMapping;
-
         public EventBus()
         {
+            _eventStore = new InMemoryEventStore();
             IocContainer = new WindsorContainer();
-            _eventAndHandlerMapping = new ConcurrentDictionary<Type, List<Type>>();
         }
 
         static EventBus()
         {
             Default = new EventBus();
-
         }
 
         #region Register
@@ -85,23 +77,7 @@ namespace EventBus
                     Component.For(handlerInterface, handlerType));
             }
 
-            //注册到事件总线
-            lock (lockObj)
-            {
-                GetOrCreateHandlers(eventType).Add(handlerType);
-            }
-        }
-
-        /// <summary>
-        /// 获取事件总线映射字典中指定事件源的事件列表
-        /// 若有，返回列表
-        /// 若无，构造空列表返回
-        /// </summary>
-        /// <param name="eventType"></param>
-        /// <returns></returns>
-        private List<Type> GetOrCreateHandlers(Type eventType)
-        {
-            return _eventAndHandlerMapping.GetOrAdd(eventType, (type) => new List<Type>());
+            _eventStore.AddRegister(eventType, handlerType);
         }
 
         /// <summary>
@@ -150,10 +126,7 @@ namespace EventBus
         /// <param name="handlerType"></param>
         public void UnRegister<TEventData>(Type handlerType) where TEventData : IEventData
         {
-            lock (lockObj)
-            {
-                GetOrCreateHandlers(typeof(TEventData)).RemoveAll(t => t == handlerType);
-            }
+            _eventStore.RemoveRegister(typeof(TEventData), handlerType);
         }
 
         /// <summary>
@@ -162,27 +135,29 @@ namespace EventBus
         /// <typeparam name="TEventData"></typeparam>
         public void UnRegisterAll<TEventData>() where TEventData : IEventData
         {
-            lock (lockObj)
+            //获取所有映射的EventHandler
+            List<Type> handlerTypes = _eventStore.GetHandlersForEvent(typeof(TEventData)).ToList();
+            foreach (var handlerType in handlerTypes)
             {
-                GetOrCreateHandlers(typeof(TEventData)).Clear();
+                _eventStore.RemoveRegister(typeof(TEventData), handlerType);
             }
         }
 
         #endregion
 
-            #region Trigger
+        #region Trigger
 
-            /// <summary>
-            /// 根据事件源触发绑定的事件处理
-            /// </summary>
-            /// <typeparam name="TEventData"></typeparam>
-            /// <param name="eventData"></param>
+        /// <summary>
+        /// 根据事件源触发绑定的事件处理
+        /// </summary>
+        /// <typeparam name="TEventData"></typeparam>
+        /// <param name="eventData"></param>
         public void Trigger<TEventData>(TEventData eventData) where TEventData : IEventData
         {
             //获取所有映射的EventHandler
-            List<Type> handlerTypes = GetOrCreateHandlers(typeof(TEventData));
+            List<Type> handlerTypes = _eventStore.GetHandlersForEvent(eventData.GetType()).ToList();
 
-            if (handlerTypes != null && handlerTypes.Count > 0)
+            if (handlerTypes.Count > 0)
             {
                 foreach (var handlerType in handlerTypes)
                 {
@@ -209,21 +184,27 @@ namespace EventBus
         /// <param name="eventHandlerType"></param>
         /// <param name="eventData"></param>
 
-        public void Trigger<TEventData>(Type eventHandlerType, TEventData eventData) 
+        public void Trigger<TEventData>(Type eventHandlerType, TEventData eventData)
             where TEventData : IEventData
         {
-            //获取类型实现的泛型接口
-            var handlerInterface = eventHandlerType.GetInterface("IEventHandler`1");
-
-            var eventHandlers = IocContainer.ResolveAll(handlerInterface);
-
-            //循环遍历，仅当解析的实例类型与映射字典中事件处理类型一致时，才触发事件
-            foreach (var eventHandler in eventHandlers)
+            if (_eventStore.HasRegisterForEvent<TEventData>())
             {
-                if (eventHandler.GetType() == eventHandlerType)
+                var handlers = _eventStore.GetHandlersForEvent<TEventData>();
+                if (handlers.Any(th => th == eventHandlerType))
                 {
-                    var handler = eventHandler as IEventHandler<TEventData>;
-                    handler?.HandleEvent(eventData);
+                    //获取类型实现的泛型接口
+                    var handlerInterface = eventHandlerType.GetInterface("IEventHandler`1");
+
+                    var eventHandlers = IocContainer.ResolveAll(handlerInterface);
+                    //循环遍历，仅当解析的实例类型与映射字典中事件处理类型一致时，才触发事件
+                    foreach (var eventHandler in eventHandlers)
+                    {
+                        if (eventHandler.GetType() == eventHandlerType)
+                        {
+                            var handler = eventHandler as IEventHandler<TEventData>;
+                            handler?.HandleEvent(eventData);
+                        }
+                    }
                 }
             }
         }
@@ -245,7 +226,7 @@ namespace EventBus
         /// <param name="eventHandlerType"></param>
         /// <param name="eventData"></param>
         /// <returns></returns>
-        public Task TriggerAsycn<TEventData>(Type eventHandlerType, TEventData eventData) 
+        public Task TriggerAsycn<TEventData>(Type eventHandlerType, TEventData eventData)
             where TEventData : IEventData
         {
             return Task.Run(() => Trigger(eventHandlerType, eventData));
