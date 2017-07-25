@@ -9,7 +9,7 @@ namespace EventBus
 {
     public interface IEventBus
     {
-        void Register<TEventData>(IEventHandler eventHandler);
+        void Register<TEventData>(IEventHandler eventHandler) where TEventData : IEventData;
 
         void Register<TEventData>(Action<TEventData> action) where TEventData : IEventData;
 

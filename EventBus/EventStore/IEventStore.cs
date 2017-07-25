@@ -16,6 +16,8 @@ namespace EventBus.EventStore
         bool HasRegisterForEvent(Type eventData);
         IEnumerable<Type> GetHandlersForEvent<T>() where T : IEventData;
         IEnumerable<Type> GetHandlersForEvent(Type eventData);
+
+        Type GetEventTypeByName(string eventName);
         bool IsEmpty { get; }
         void Clear();
     }

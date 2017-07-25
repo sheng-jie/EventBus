@@ -113,6 +113,11 @@ namespace EventBus.EventStore
             return new List<Type>();
         }
 
+        public Type GetEventTypeByName(string eventName)
+        {
+            return _eventAndHandlerMapping.Keys.FirstOrDefault(eh => eh.Name == eventName);
+        }
+
         public bool IsEmpty => !_eventAndHandlerMapping.Keys.Any();
 
         public void Clear() => _eventAndHandlerMapping.Clear();

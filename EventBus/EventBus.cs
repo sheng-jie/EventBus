@@ -38,7 +38,7 @@ namespace EventBus
         /// </summary>
         /// <typeparam name="TEventData"></typeparam>
         /// <param name="eventHandler"></param>
-        public void Register<TEventData>(IEventHandler eventHandler)
+        public void Register<TEventData>(IEventHandler eventHandler) where TEventData : IEventData
         {
             Register(typeof(TEventData), eventHandler.GetType());
         }
